@@ -49,7 +49,7 @@
   <arg name="ordered_pc"                default="false"/>
 
   <arg name="enable_sync"               default="false"/>
-  <arg name="align_depth"               default="false"/>
+  <arg name="align_depth"               default="true"/>
 
   <arg name="publish_tf"                default="true"/>
   <arg name="tf_publish_rate"           default="0"/>
@@ -62,11 +62,13 @@
   <arg name="topic_odom_in"             default="odom_in"/>
   <arg name="calib_odom_file"           default=""/>
   <arg name="publish_odom_tf"           default="true"/>
-  <arg name="emitter_enable"   		default="false"/>
+  <arg name="emitter_enable"    	default="false"/>
 <rosparam>
   /camera/stereo_module/emitter_enabled: false
 </rosparam>  
-
+<rosparam if="$(arg emitter_enable)">
+  /camera/stereo_module/emitter_enabled: true
+</rosparam>
   <group ns="$(arg camera)">
     <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
       <arg name="tf_prefix"                value="$(arg tf_prefix)"/>

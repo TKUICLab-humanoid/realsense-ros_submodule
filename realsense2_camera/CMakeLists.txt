@@ -71,6 +71,7 @@ add_message_files(
     FILES
     IMUInfo.msg
     Extrinsics.msg
+    IMUdata.msg
     )
 
 generate_messages(
@@ -84,8 +85,9 @@ include_directories(
     include
     ${realsense2_INCLUDE_DIR}
     ${catkin_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
     )
-
+find_package(OpenCV REQUIRED)
 # RealSense ROS Node
 catkin_package(
     LIBRARIES ${PROJECT_NAME}
@@ -123,16 +125,28 @@ add_executable(realsense_cam
 #    src/main.cpp 
     src/Camera_Controls.cpp
     src/RGB_camera_controls.cpp
+#    src/Get_D435i_IMU.cpp
 #    include/main.h 
     include/Camera_Controls/Camera_Controls.h
     include/RGB_camera_controls/RGB_camera_controls.h
+#    include/Get_D435i_IMU/Get_D435i_IMU.h
+    )
+
+add_executable(realsense_IMU 
+   src/Get_D435i_IMU.cpp
+   include/Get_D435i_IMU/Get_D435i_IMU.h
     )
 target_link_libraries(realsense_cam
 #  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${realsense2_LIBRARY}
 )
-
+target_link_libraries(realsense_IMU
+#  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${realsense2_LIBRARY}
+)
 if(WIN32)
 set_target_properties(${realsense2_LIBRARY} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 target_link_libraries(${PROJECT_NAME}
