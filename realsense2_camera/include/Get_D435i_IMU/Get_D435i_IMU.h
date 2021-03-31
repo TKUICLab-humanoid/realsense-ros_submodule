@@ -25,6 +25,7 @@ using namespace cv;
 #ifndef PI
 const double PI = 3.14159265358979323846;
 #endif
+#define RAD2DEG         180/PI
 struct float3 {
     float x, y, z;
     float3 operator*(float t)
@@ -66,23 +67,28 @@ private:
     realsense2_camera::IMUdata msg_imudata;
     // theta is the angle of camera rotation in x, y and z components
     bool get_imu_gyro_data;
-    float3 theta = {0.0,0.0,0.0};
+    float3 theta_gyro = {0.0,0.0,0.0};
+    float3 theta_accel = {0.0,0.0,0.0};
     std::mutex theta_mtx;
     /* alpha indicates the part that gyro and accelerometer take in computation of theta; higher alpha gives more weight to gyro, but too high
     values cause drift; lower alpha gives more weight to accelerometer, which is more sensitive to disturbances */
     float alpha = 0.98;
     bool firstGyro = true;
     bool firstAccel = true;
+    ros::Time msgtime;
     // Keeps the arrival time of previous gyro frame
     ros::Time last_ts_gyro;
     ros::Publisher IMUgyroData_Publisher;
+    float last_z;
 public:
     rs2_vector gyro_data;
-    ros::Time msgtime;
+    rs2_vector accel_data;
     Get_D435i_IMU(ros::NodeHandle &nh);
     ~Get_D435i_IMU();
     void process_gyro(rs2_vector gyro_data,ros::Time ts);
-    float3 get_theta();
+    void process_accel(rs2_vector accel_data);
+    float3 get_theta_gyro();
+    float3 get_theta_accel();
     void GetIMUgyroDataFunction(const sensor_msgs::Imu::ConstPtr& msg);
     float normalize_angle(float phi);
     void GetImudata();
