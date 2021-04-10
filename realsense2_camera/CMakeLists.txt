@@ -9,6 +9,12 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 find_package(catkin REQUIRED COMPONENTS
+    message_filters
+	pluginlib
+	tf2_ros
+	tf2_geometry_msgs
+	tf2
+	geometry_msgs
     message_generation
     nav_msgs
     roscpp
@@ -86,18 +92,63 @@ include_directories(
     ${realsense2_INCLUDE_DIR}
     ${catkin_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
     )
+
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# Generate dynamic parameters
+generate_dynamic_reconfigure_options(cfg/ImuFilterMadgwick.cfg)
 find_package(OpenCV REQUIRED)
 # RealSense ROS Node
 catkin_package(
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS message_runtime roscpp sensor_msgs std_msgs
+	LIBRARIES ${PROJECT_NAME}
+	CATKIN_DEPENDS message_runtime roscpp sensor_msgs std_msgs geometry_msgs tf2_ros tf2_geometry_msgs nodelet pluginlib message_filters dynamic_reconfigure
     nodelet
     cv_bridge
     image_transport
     ddynamic_reconfigure
     nav_msgs
+	DEPENDS Boost
+	INCLUDE_DIRS
+	LIBRARIES imu_filter imu_filter_nodelet
     )
+# create imu_filter library
+add_library (imu_filter src/imu_filter/imu_filter.cpp  src/imu_filter/imu_filter_ros.cpp src/imu_filter/stateless_orientation.cpp)
+add_dependencies(imu_filter ${PROJECT_NAME}_gencfg)
+target_link_libraries(imu_filter ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+# create imu_filter_nodelet library
+add_library (imu_filter_nodelet src/imu_filter/imu_filter_nodelet.cpp)
+add_dependencies(imu_filter_nodelet ${PROJECT_NAME}_gencfg)
+target_link_libraries(imu_filter_nodelet imu_filter ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+# create imu_filter_node executable
+add_executable(imu_filter_node src/imu_filter/imu_filter_node.cpp)
+add_dependencies(imu_filter_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(imu_filter_node imu_filter ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+
+install(TARGETS imu_filter_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS imu_filter imu_filter_nodelet
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+)
+
+install(FILES imu_filter_nodelet.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 add_library(${PROJECT_NAME}
     include/constants.h
@@ -132,21 +183,21 @@ add_executable(realsense_cam
 #    include/Get_D435i_IMU/Get_D435i_IMU.h
     )
 
-add_executable(realsense_IMU 
-   src/Get_D435i_IMU.cpp
-   include/Get_D435i_IMU/Get_D435i_IMU.h
-    )
+#add_executable(realsense_IMU 
+#   src/Get_D435i_IMU.cpp
+#   include/Get_D435i_IMU/Get_D435i_IMU.h
+#    )
 target_link_libraries(realsense_cam
 #  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${realsense2_LIBRARY}
 )
-target_link_libraries(realsense_IMU
+#target_link_libraries(realsense_IMU
 #  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${realsense2_LIBRARY}
-)
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBRARIES}
+#  ${realsense2_LIBRARY}
+#)
 if(WIN32)
 set_target_properties(${realsense2_LIBRARY} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 target_link_libraries(${PROJECT_NAME}
@@ -173,13 +224,12 @@ install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
     )
 
-# Install rviz files
-install(DIRECTORY rviz/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz
-    )
-
 # Install xml files
 install(FILES nodelet_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
     )
 
+install(DIRECTORY include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+)
