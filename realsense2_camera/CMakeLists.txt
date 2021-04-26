@@ -49,7 +49,7 @@ endif()
 if (WIN32)
 find_package(realsense2 CONFIG REQUIRED)
 else()
-find_package(realsense2 2.42.0)
+find_package(realsense2 2.44.0)
 endif()
 
 if(NOT realsense2_FOUND)
@@ -227,6 +227,10 @@ install(DIRECTORY launch/
 # Install xml files
 install(FILES nodelet_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    )
+# Install rviz files
+install(DIRECTORY rviz/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz
     )
 
 install(DIRECTORY include/${PROJECT_NAME}/
