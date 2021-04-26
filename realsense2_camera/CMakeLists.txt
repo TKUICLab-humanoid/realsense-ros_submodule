@@ -10,7 +10,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 find_package(catkin REQUIRED COMPONENTS
     message_filters
-	pluginlib
+    pluginlib
 	tf2_ros
 	tf2_geometry_msgs
 	tf2
