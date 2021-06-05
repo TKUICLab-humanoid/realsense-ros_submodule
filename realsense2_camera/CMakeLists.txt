@@ -49,7 +49,7 @@ endif()
 if (WIN32)
 find_package(realsense2 CONFIG REQUIRED)
 else()
-find_package(realsense2 2.44.0)
+find_package(realsense2 2.45.0)
 endif()
 
 if(NOT realsense2_FOUND)
@@ -100,16 +100,17 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 # Generate dynamic parameters
 generate_dynamic_reconfigure_options(cfg/ImuFilterMadgwick.cfg)
 find_package(OpenCV REQUIRED)
+
 # RealSense ROS Node
 catkin_package(
-	LIBRARIES ${PROJECT_NAME}
-	CATKIN_DEPENDS message_runtime roscpp sensor_msgs std_msgs geometry_msgs tf2_ros tf2_geometry_msgs nodelet pluginlib message_filters dynamic_reconfigure
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS message_runtime roscpp sensor_msgs std_msgs
     nodelet
     cv_bridge
     image_transport
     ddynamic_reconfigure
     nav_msgs
-	DEPENDS Boost
+    DEPENDS Boost
 	INCLUDE_DIRS
 	LIBRARIES imu_filter imu_filter_nodelet
     )
@@ -149,7 +150,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(FILES imu_filter_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-
 add_library(${PROJECT_NAME}
     include/constants.h
     include/realsense_node_factory.h
@@ -171,7 +171,6 @@ target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     )
-
 add_executable(realsense_cam 
 #    src/main.cpp 
     src/Camera_Controls.cpp
@@ -224,13 +223,14 @@ install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
     )
 
-# Install xml files
-install(FILES nodelet_plugins.xml
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-    )
 # Install rviz files
 install(DIRECTORY rviz/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz
+    )
+
+# Install xml files
+install(FILES nodelet_plugins.xml
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
     )
 
 install(DIRECTORY include/${PROJECT_NAME}/
