@@ -132,6 +132,18 @@ BaseRealSenseNode::BaseRealSenseNode(ros::NodeHandle& nodeHandle,
     _stream_name[RS2_STREAM_POSE] = "pose";
 
     _monitor_options = {RS2_OPTION_ASIC_TEMPERATURE, RS2_OPTION_PROJECTOR_TEMPERATURE};
+
+    //setpara_sub_
+    _cameraparam_subscriber = _node_handle.subscribe("/realsense/setcamera", 1, &BaseRealSenseNode::setparaCallback,this);
+    cameraparam_publisher = _node_handle.advertise<tku_msgs::Cameraparam>("/realsense/savecamera", 10);
+
+    brightness_ = 0;
+    contrast_ = 50;
+    saturation_ = 50;
+    white_balance_ = 4000;
+    auto_exposure_ = 0;
+    auto_white_balance_ = 0;
+    auto_Backlight_Compensation_ = 0;
 }
 
 BaseRealSenseNode::~BaseRealSenseNode()
@@ -442,6 +454,9 @@ void BaseRealSenseNode::registerAutoExposureROIOptions(ros::NodeHandle& nh)
         }
     }
 }
+
+
+
 
 void BaseRealSenseNode::registerDynamicOption(ros::NodeHandle& nh, rs2::options sensor, std::string& module_name)
 {
@@ -814,6 +829,7 @@ void BaseRealSenseNode::getParameters()
     _pnh.param("angular_velocity_cov", _angular_velocity_cov, static_cast<double>(0.01));
     _pnh.param("hold_back_imu_for_frames", _hold_back_imu_for_frames, HOLD_BACK_IMU_FOR_FRAMES);
     _pnh.param("publish_odom_tf", _publish_odom_tf, PUBLISH_ODOM_TF);
+
 }
 
 void BaseRealSenseNode::setupDevice()
@@ -2490,4 +2506,126 @@ void TemperatureDiagnostics::diagnostics(diagnostic_updater::DiagnosticStatusWra
 {
         status.summary(0, "OK");
         status.add("Index", _crnt_temp);
+}
+
+void BaseRealSenseNode::setparaCallback(const tku_msgs::Cameraparam &msg)
+{
+    brightness_         = int(msg.brightness);
+    contrast_           = int(msg.contrast);
+    saturation_         = int(msg.saturation);
+    white_balance_      = int(msg.white_balance);
+    auto_white_balance_ = msg.auto_white_balance;
+    auto_exposure_       = msg.auto_exposure; 
+    auto_Backlight_Compensation_ = msg.auto_Backlight_Compensation;
+    // ROS_INFO("brightness                        = %d",brightness_);
+    // ROS_INFO("contrast                          = %d",contrast_);
+    // ROS_INFO("saturation                        = %d",saturation_);
+    // ROS_INFO("white_balance                     = %d",white_balance_);
+    // ROS_INFO("auto_white_balance                = %d",(auto_white_balance_==true)?1:0);
+    // ROS_INFO("auto_exposure                     = %d",(auto_exposure_==true)?1:0);
+    // ROS_INFO("auto_Backlight_Compensation       = %d",(auto_Backlight_Compensation_==true)?1:0);
+    // ROS_INFO("===================================");
+    SetCameraParameter(_dev_sensors);
+
+}
+
+void BaseRealSenseNode::SetCameraParameter(std::vector<rs2::sensor> dev_sensors)
+{
+    // for(rs2::sensor setsensor : _dev_sensors)
+    // {
+        // ROS_INFO("123");
+        setsensor = dev_sensors[1];
+        rs2_option option_type;
+        if (brightness_ >= -64 && brightness_ <= 64)
+        {
+            option_type = static_cast<rs2_option>(1);
+            try
+            {
+                setsensor.set_option(option_type, brightness_);
+            }
+            catch (const rs2::error& e)
+            {
+                std::cerr << "Failed to set option " << option_type << ". (" << e.what() << ")" << std::endl;
+            }
+        }
+        if (contrast_ >= 0 && contrast_ <= 100)
+        {
+            option_type = static_cast<rs2_option>(2);
+            try
+            {
+                setsensor.set_option(option_type, contrast_);
+            }
+            catch (const rs2::error& e)
+            {
+                std::cerr << "Failed to set option " << option_type << ". (" << e.what() << ")" << std::endl;
+            }
+        }
+        if (saturation_ >= 0 && saturation_<= 100)
+        {
+            option_type = static_cast<rs2_option>(7);
+            try
+            {
+                setsensor.set_option(option_type, saturation_);
+            }
+            catch (const rs2::error& e)
+            {
+                std::cerr << "Failed to set option " << option_type << ". (" << e.what() << ")" << std::endl;
+            }
+        }
+        if(auto_white_balance_ == 0 )
+        {
+            option_type = static_cast<rs2_option>(11);
+            setsensor.set_option(option_type, 0);
+            if (white_balance_ >= 2800 && white_balance_<= 6500)
+            {
+                option_type = static_cast<rs2_option>(9);
+                try
+                {
+                    setsensor.set_option(option_type, white_balance_);
+                }
+                catch (const rs2::error& e)
+                {
+                    std::cerr << "Failed to set option " << option_type << ". (" << e.what() << ")" << std::endl;
+                }  
+            }
+        }else
+        {
+            option_type = static_cast<rs2_option>(11);
+            try
+            {
+                setsensor.set_option(option_type, 1);
+            }
+            catch (const rs2::error& e)
+            {
+                std::cerr << "Failed to set option " << option_type << ". (" << e.what() << ")" << std::endl;
+            }  
+        }
+        if (auto_exposure_ == 1 )
+        {
+            option_type = static_cast<rs2_option>(10);
+            setsensor.set_option(option_type, 1);
+        }else
+        {
+            option_type = static_cast<rs2_option>(10);
+            setsensor.set_option(option_type, 0);
+        }
+        if (auto_Backlight_Compensation_ == 1 )
+        {
+            option_type = static_cast<rs2_option>(0);
+            setsensor.set_option(option_type, 1);
+        }else
+        {
+            option_type = static_cast<rs2_option>(0);
+            setsensor.set_option(option_type, 0);
+        }
+    // }
+    tku_msgs::Cameraparam Setparam_msg;
+    Setparam_msg.brightness = brightness_;
+    Setparam_msg.contrast = contrast_;
+    Setparam_msg.saturation = saturation_;
+    Setparam_msg.white_balance = white_balance_;
+    Setparam_msg.auto_exposure =  auto_exposure_;
+    Setparam_msg.auto_white_balance = auto_white_balance_;
+    Setparam_msg.auto_Backlight_Compensation = auto_Backlight_Compensation_;
+    cameraparam_publisher.publish(Setparam_msg);
 }

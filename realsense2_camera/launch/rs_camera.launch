@@ -34,9 +34,9 @@
   <arg name="enable_color"        default="true"/>
 
   <arg name="fisheye_fps"         default="-1"/>
-  <arg name="depth_fps"           default="-1"/>
+  <arg name="depth_fps"           default="30"/>
   <arg name="infra_fps"           default="30"/>
-  <arg name="color_fps"           default="-1"/>
+  <arg name="color_fps"           default="30"/>
   <arg name="gyro_fps"            default="-1"/>
   <arg name="accel_fps"           default="-1"/>
   <arg name="enable_gyro"         default="true"/>
@@ -48,8 +48,8 @@
   <arg name="allow_no_texture_points"   default="false"/>
   <arg name="ordered_pc"                default="false"/>
 
-  <arg name="enable_sync"               default="false"/>
-  <arg name="align_depth"               default="false"/>
+  <arg name="enable_sync"               default="true"/>
+  <arg name="align_depth"               default="true"/>
 
   <arg name="publish_tf"                default="true"/>
   <arg name="tf_publish_rate"           default="0"/>
@@ -57,7 +57,7 @@
   <arg name="filters"                   default=""/>
   <arg name="clip_distance"             default="-2"/>
   <arg name="linear_accel_cov"          default="0.01"/>
-  <arg name="initial_reset"             default="false"/>
+  <arg name="initial_reset"             default="true"/>
   <arg name="unite_imu_method"          default=""/>
   <arg name="topic_odom_in"             default="odom_in"/>
   <arg name="calib_odom_file"           default=""/>
@@ -67,9 +67,11 @@
   <arg name="stereo_module/gain/1"      default="16"/>
   <arg name="stereo_module/exposure/2"  default="1"/>
   <arg name="stereo_module/gain/2"      default="16"/>
-  
+  <arg name="emitter_enable"            default="0"/>
 <rosparam>
-/camera/stereo_module/emitter_enabled: false
+/camera/stereo_module/emitter_enabled: 0
+/camera/stereo_module/auto_exposure_limit: 1
+/camera/stereo_module/auto_gain_limit: 16
 </rosparam>    
 
   <group ns="$(arg camera)">

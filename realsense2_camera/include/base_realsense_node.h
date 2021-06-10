@@ -16,6 +16,8 @@
 #include <tf/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <condition_variable>
+#include "tku_msgs/Cameraparam.h"
+
 
 #include <queue>
 #include <mutex>
@@ -329,7 +331,22 @@ namespace realsense2_camera
         const std::string _namespace;
 
         sensor_msgs::PointCloud2 _msg_pointcloud;
+
         std::vector< unsigned int > _valid_pc_indices;
+
+
+        int brightness_, contrast_, saturation_,white_balance_;
+        bool auto_exposure_, auto_white_balance_,auto_Backlight_Compensation_;
+    
+        void setparaCallback(const tku_msgs::Cameraparam &msg);
+        void SetCameraParameter(std::vector<rs2::sensor> dev_sensors);
+        ros::Publisher  cameraparam_publisher;
+        ros::Subscriber _cameraparam_subscriber;
+        rs2::sensor setsensor; 
+
+    
+    
+    
     };//end class
 
 }

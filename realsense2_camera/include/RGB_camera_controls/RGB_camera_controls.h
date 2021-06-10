@@ -14,10 +14,10 @@ struct CameraParameter
     bool  auto_exposure;
     bool  auto_white_balance;
     bool  auto_Backlight_Compensation;
-    float  brightness;
-    float  contrast;
-    float  saturation;
-    float  white_balance;
+    int  brightness;
+    int  contrast;
+    int  saturation;
+    int  white_balance;
     string ParameterName;
 };
 
